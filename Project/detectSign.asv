@@ -1,0 +1,50 @@
+function [sign, name] = detectSign(foundBlob, knownBlobs, knownNames)
+%DETECTSIGN function for detecting blobs based on form parameters
+%
+% INPUTS:
+%   foundBlob  - the blob that is to be tested to find a known blob. This
+%                is in vector form, each column represents a form 
+%                parameter, in the order defined in contourTrack.m
+%
+%   knownBlobs - the blobs that are known, in matrix form. Again, each row
+%                represents a blob and each column is the same as specified
+%                above
+%
+%   knownNames - the names of the know blobs, in one column
+%
+
+min_diff = inf;
+
+% Place holders for identified blob parameters and their names
+letters = [];
+names = [];
+
+% looking for the nearest neighbour (I use euclidean distance).
+for j = 1:numel(knownBlobs(:,1))       
+    diffs = abs(foundBlob(3:11) - knownBlobs(j,3:11));
+    % Put more weight on phi1, phi1, psi1, psi2. These were found
+    % to be the most reliable form parameters
+    %diff_weights = [0.125 0.025 0.025 0.025 0 0.2 0.2 0.2 0.2]; 
+    % Sqaure root of the sum of the squares
+    diff_euclid = sqrt(sum((diffs).^2))
+    if diff_euclid < min_diff
+        min_diff = diff_euclid;
+        % Store name and centroid of closest neighbour
+        closest = {knownNames(j,1), foundBlob(1), ...
+            foundBlob(2)};
+    end
+end 
+
+if min_diff < inf    % Threshold for being considered a match
+sign = [closest{2} closest{3}];
+name = closest{1};
+end
+% Show a message if there are no matches
+if numel(sign) == 0
+    msgbox('No Sign Detected!');
+else
+  %  msgbox(strcat('Found sign ', name));
+end
+end
+
+
